@@ -1,0 +1,114 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<head>
+<title>刃状転位を挿入する</title>
+</head>
+
+<body bgcolor="ffffcc">
+<center><h2 style="color:Blue;">刃状転位を挿入する</h2></center>
+
+このコースの最も重要な目的はLAMMPSを用いてMDのチュートリアルを行うことなので、材料力学の詳細について大きなスペースをさくことはできない。しかしながら、受講者が材料力学理論をよく理解していることを前提とするのも不親切だろう。よって、以下では今回の講座に必要な最低限の材料力学の基礎について述べておく。<br><br>
+
+ただし、タイトルの「刃状転位」を聞いた事がない受講者は、あらかじめ材料力学の教科書等で転位について学習することをお勧めする。その役目はこの「分子動力学入門コース」では重すぎる。もし材料力学にあまり興味がないなら、目次に戻って転位に関する講座をすっ飛ばして先に進んだ方がいい。少なくとも聞いた事があるなら、このまま進んでも構わない。<br><br>
+
+この講座でもこれまでと同様に鉄の結晶を例にとって話を進めることにする。これまで学んだ講座を通してすでに知っていると思うが、鉄結晶は低温および常温で体心立方格子(BCC)構造を有する。刃状転位だけでなくすべての転位は結晶構造に依存している。よってこの講座はBCC構造を持つ材料特有の話となる。すなわち、バナジウム、タングステン、モリブデン、ニオブのように同じBCC構造の金属を扱う場合もこれから紹介する方法で行うことができる。<br><br>
+        
+さて、物質の変形は2つの種類に大別できる。一つは、外力が消滅すると元の形状に戻る変形で、弾性変形と呼ばれる。もう一つは外力が消滅しても元に戻らず変形された状態を保持される変形で、塑性変形と呼ばれる。この講座に関係しているのは後者の方である。<br><br>
+
+金属やセラミクスの多くは結晶構造を持つ。それらの塑性変形は結晶中の線状の格子欠陥（結晶格子のみだれ）の生成・消滅・移動などのダイナミクスによりモデル化できる。その線状の格子欠陥のことを転位と呼ぶ。よって転位について学ぶことは物質の塑性変形を学ぶこととほぼ同義である。転位は電子顕微鏡像で実験的に観察できるので、物質の塑性変形過程をある程度までなら実験的に観察できる。</b><br><br>
+    
+転位にはいくつかの種類があり、ここで学ぶのは刃状転位と呼ばれるものである。一言で説明すると「結晶の中に1つの余分な面が入っている格子欠陥」である。と言われても知らない人は何を言われているのかピンとこないだろう。まずは下の図を見て欲しい。<br><br>
+
+<center><img src="insert_edge.png" width="500"></center>
+<br>
+
+表示されているような直交系に直方体の材料サンプルが置かれている。これまで例として挙げてきた直交系はx、y、z方向がそれぞれ[100]、[010]、[001]であったが、少し複雑な方向になっていることに注意しよう。<br><br>
+
+さて転位は線状の欠陥であることを上で述べたが、その方向は結晶構造によって決まっている。図の直方体の下部に薄い板が立っているが、この板の面の垂直方向は図からわかるように[111]である。その方向に原子は周期的に並んでいるが、その1周期分がその板に含まれているしよう。その板に含まれた原子を全て削除するとする。その後、構造緩和すれば削除した部分の両側の面が近づいてきて結合は回復する。その結果、直方体上部に一面"余り"ができてしまう。上部と下部の境界に、正確には削除した薄い板の上部に、結晶構造がうまく整合しない部分ができてしまう。整合しない部分はy方向の線状となり、これが刃状転位である。<br><br>
+
+またこの時、薄い板の左壁を右に移動させて右壁に一致させたとする。この時の移動ベクトルは1/2[111]になる。このベクトルを一般化した表記1/2<111>も含めて、これらこの転位のバーガーズベクトルと呼ばれる。またこの場合、転位の方向は図からわかるように<11-2>方向である。またこの講座ではふれないが、この転位がz面[-110]内で並進運動することによりその面がすべる、すなわち塑性変形する。よって転位を特定するのにすべり面の情報もいれて1/2<111>{110}と表記することもある。<br>
+<br>
+上記要領で刃状転位を鉄結晶に挿入する手続きをスクリプトにしたものがscriptディレクトリ中の"bccFe_edge_relax.lcm"である。これをLAMMPSで実行するには以下のコマンドで行う。
+
+<pre>
+<font color="green"; size="+1">	
+$ lmp_serial -in script/bccFe_edge_relax.lcm
+</font>
+</pre>
+
+dumpさせたファイル（bccFe_edge_relax.out）をOVITOにロードして計算がうまくいったか確認しよう。画面左下のスライダーで最終ステップの状態にする。その後、<a href="cascade.html">照射損傷をモデル化する</a>で紹介したCNA解析と同じModificationを行う。下の図のように真ん中に線状のBCC構造からの乱れが観察されば成功である。<br><br>
+<center><img src="bccFe_edge_relax.png" width="500"></center><br>
+
+別の解析法もある。現在のModifierをすべて消去し、新たにDislocation Analysis (DXA)を選択する。その後、Modifierパネル上部の"Visual elements"の上から2番目のParticlesのチェックボックスおよび上から3番目のDefect Meshのチェックボックスを外せば転位が見えるはずである。ただし、パネル下の"Input crystal type"がBCCになっていることを確認すること。<br><br>
+
+"Visual elements"の4番目のDislocationsをハイライトさせるとDislocation Displayのインターフェースが下に現れるので、一番の下のLocal character (screw/edge)を選択する。転位は青色に表示されるはずで、DXAで同定された転位が刃状転位であることが確認できる。この例の場合には問題ないだろうがもし今後DXAが計算的に重いと感じた場合には、上のCNA解析によって大体の様子は確認できる。<br><br>
+
+さていつものようにスクリプトを1行ずつ見ていくことにする。
+<pre>
+<font color="green"; size="+1">	
+units metal
+boundary p p p
+atom_style atomic
+</font>
+</pre>   
+これはいつもでてくる最初の3行である。単位、境界条件、原子情報の属性を定義する。
+<pre>
+<font color="green"; size="+1">	
+lattice	bcc 2.83 orient x 1 1 1 orient y 1 1 -2 orient z -1 1 0
+region box block 0 10 0 9 0 20 units lattice
+create_box 1 box
+create_atoms 1 box
+</font>
+</pre>   
+
+まずlatticeコマンドであるが上の図のx、y、z方向に従ってコマンド中の方向が定義されていることに注意しよう。<br><br>
+
+次のregionコマンドではシミュレーションに使うボックスを定義する。ただし、"units lattice"となっているが単位は格子定数ではなく各結晶方向の1周期が単位になることに注意する。<br><br>
+
+それに続く2行は何度も出てきたので説明は不要だろう。これで上の図の直方体にBCC構造の原子群が入ったことになる。
+
+<pre>
+<font color="green"; size="+1">	
+region lower_vacuum block INF INF INF INF INF 1.9
+delete_atoms region lower_vacuum
+region upper_vacuum block INF INF INF INF 18.1 INF
+delete_atoms region upper_vacuum
+</font>
+</pre>
+        
+次は<a href="shear.html">せん断変形を行う</a>の講座にも出てきたが、z方向の最下部と最上部に真空を入れて分離させる手続きである。最初のregionコマンドではlower_vacuumという名前の最下部の領域を定義し、その次のdelete_atomsではその領域に含まれる原子を消去している。続く2行も同じ手続きを最上部に対して行っている。特にわかりにくいことはないだろう。
+<pre>
+<font color="green"; size="+1">	        
+region edge_dis block 4.9 5.35 INF INF 0 9.8
+delete_atoms region edge_dis
+</font>
+</pre>
+この2行では図で示した直方体下部の薄い板の部分をregionで定義し、その領域に属する全ての原子を削除している。この理由はすでに説明した。
+<pre>
+<font color="green"; size="+1">	        
+pair_style eam/fs 
+pair_coeff * * ./potentials/Fe_mm.eam.fs Fe
+neigh_modify every 1 delay 0 check yes
+dump 1 all custom 100 bcc_edge_relax.out mass type xs ys zs
+reset_timestep 0 
+fix 1 all box/relax iso 0.0 vmax 0.001
+thermo 100
+thermo_style custom step pe lx ly lz pxx pyy pzz
+min_style cg 
+minimize 1e-25 1e-12 50000 10000 
+</font>
+</pre>
+    ここから先は構造緩和の計算であり、ポテンシャルの定義、fix ... box/relaxコマンドで体積緩和を指定、min_styleコマンドで共役勾配法を指定、そしてminimizeコマンドで最終的に構造緩和を実行している。以前の講座で説明が足りているはずなので、ここでは詳細を繰り返さない。コマンドの意味がわからない受講者は<a href="relax.html">構造緩和を行う</a>に戻ることをおすすめする。<br><br>
+    
+以上である。このスクリプトと以前<a href="shear.html">せん断変形を行う</a>で学んだスクリプトなどを組み合わせれば物質の塑性変形を原子レベルでモデリングできるとともに、材料の強度などを評価する方法となる。
+    
+<pre>
+----------------------------------------------------
+</pre>
+<a href="index.html">目次へ</a>    前は<a href="read_data.html">LAMMPSの外部で初期値を作る</a>     次は<a href="screw.html">らせん転位を挿入する</a>
+<br><br>
+</body>
+</html>

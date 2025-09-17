@@ -1,0 +1,42 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<head>
+<title>GPUを利用する</title>
+</head>
+
+<body bgcolor="ffffcc">
+<center><h2 style="color:Blue;">GPUを利用する</h2></center><br>
+
+<a name="install"><h3 style="color:Blue;">GPUとは？</h3></a>
+
+Graphics Processing Unit(GPU)は元々はディスプレイの描画を高速化するためのオプションとしてCPUとは別に設置されるプロセッサであったが、計算科学分野の中で処理を高速化するために使われるようになった。机の下のワークステーションだけでなくスーパーコンピューターにも、CPUにGPUを付加することにより高速化がはかられるようになってきている。今後はGPUのようなCo-processorによる計算高速化が今後の計算科学のハードウェアの標準になっていくだろう。<br><br>
+
+このようなハードウェアの変化に伴ってLAMMPSを含め主要な計算科学ソフトウェアパッケージを計算の高速化に利用する設計になってきている。これからLAMMPSを使い始める研究者・学生にはまずGPUを気にしないで初期的な経験を積むのがいいが、このようなものがあるということを覚えておくべきである。特に、使用する原子間ポテンシャルがGPUで利用可能な場合は計算が高速化される可能性が高い。<a href="potential.html">原子間ポテンシャルについて</a>の講座でGPUで利用可能な原子間ポテンシャルの種類を紹介してあるので参考にして欲しい。
+
+<br>
+<br>
+
+<a name="exec"><h3 style="color:Blue;">GPU版LAMMPSのコンパイル・実行</h3></a>
+
+現在著者は様々なハードウェアをテストできるような環境にいないので、この講座の情報は古いものになっている可能性があることをあらかじめ述べておく。
+
+LAMMPSでGPUを利用するには並列版のインストール時、GPUパッケージを同時にコンパイルする必要がある。詳しくは<a href="https://docs.lammps.org/Speed_gpu.html">GPU package</a>を参照すること。<br><br>
+次は実行であるが、
+
+<pre>
+mpiexec -np 8 lmp_gpu -sf gpu -pk gpu 1 -in bccFe_anneal.lcm 
+</pre>
+
+のように実行する。上の例はCPUを8コアで、gpuを1ユニット使用する場合のLAMMPS実行コマンドである。"-sf gpu"はGPUを使うことを指定するスイッチで、"-pk gpu 1"はGPUを1セット使うことを指定している。後者のスイッチのdefault値は1なので、このスイッチを省略しても良い。上の例ではCPU部分はMPIで8並列化され、CPUの各コアは共有するGPUに適切な処理を割り当てることになる。<br><br>
+
+<pre>
+----------------------------------------------------
+</pre>
+<a href="index.html">目次へ</a>    前は<a href="parallel.html">並列計算を行う</a>  次は<a href="potential.html">原子間ポテンシャルについて</a>
+</pre>
+<br><br>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<head>
+<title>らせん転位を挿入する</title>
+</head>
+
+<body bgcolor="ffffcc">
+<center><h2 style="color:Blue;">らせん転位を挿入する</h2></center>
+
+前回の<a href="edge.html">刃状転位を挿入する</a>の講座で学んだ刃状転位と同様に物質の塑性変形や強度に大きく関わっているのがらせん転位である。この講座では、らせん転位を鉄の結晶に挿入する方法を紹介する。<br><br>
+
+らせん転位はどういう格子欠陥かを簡単に述べると、紙を机などの平面において上下に引き裂くようなイメージである。下に、らせん転位が挿入された鉄結晶の中の1結晶面を取り出した図を示す。面の左側は面がつながっているが右側は面が乖離している。実際の材料においては厚みがあるので、同じ形の面を、面が乖離している部分を一致させて多数重ねた立体と考えればよい。<br><br>
+
+<center><img src="Screw_dis_plane.png" alt="screw dislocation" width="500"><br>鉄の{111}面にらせん転位が入った時の1結晶面における原子の変位</center><br><br>
+
+よってこのような欠陥を作るには図のように面を切り裂く必要がでてくる。<br><br>
+
+まず下の図にあるような直交系とそこに置かれた鉄結晶の直方体を考えよう。この直方体を図にあるようにIからIVまでの４つの領域に分割する。全体の領域は衣類を入れるタンスでそれぞれの分割した領域は引き出しと考えよう。前回も学んだがx方向である<111>方向には鉄結晶の原子は周期的に並んでいる。その1周期幅のベクトルすなわちバーガーズベクトルをb<b>x</b>とする。それぞれの"引き出し"を図のようにx方向に移動させて構造緩和させれば最初の図のようなき裂を入れることができ、らせん転位を挿入することができる。「本当にこんなことでらせん転位をつくれるのか？」と疑問に思う方がいるかもしれないが、不思議とこれでうまくいく。<br><br>
+
+<center><img src="insert_screw.jpg" width="500"></center><br>
+
+"bccFe_screw_relax.lcm"は上記の方法でらせん転位を鉄結晶に挿入する手順をコマンドスクリプトにしたものである。以下のコマンドライン入力で実行する。
+
+<pre>
+<font color="green"; size="+1">	
+$work> lmp_serial -in script/bccFe_screw_relax.lcm
+</font>
+</pre>
+
+刃状転位の場合と同様にdumpしたファイル（bccFe_screw_relax.out）で計算がうまくいったか確認することができる。刃状転位の場合と同様にOVITOの右側のパネルにおいて"Add Modification"プルダウンメニューからDXAを実行し、"Visual elements"の中の"Particles"のチェックを外し"Dislocations"をハイライトさせる。その下の方にある"Local character (<font color="red">screw</font>/<<font color="blue">edge</font>)"を選択すれば得られた転位が赤い線であるので、らせん転位であることが確認できる。<br><br>
+
+<center><img src="bccFe_screw_relax.png" width="900"></center><br>
+
+                
+次にスクリプトを見ていくことにする。
+<pre>
+<font color="green"; size="+1">                
+variable 	x_box equal 20
+variable 	y_box equal 20
+variable 	z_box equal 20
+variable 	lc equal 2.83
+</font>
+</pre>
+これはボックスの大きさと格子定数に割り当てられた変数の定義である。
+
+<pre>
+<font color="green"; size="+1">      
+variable 	vacuum_width equal 1.9
+variable 	vacuum_low equal ${vacuum_width}
+variable 	vacuum_high_z equal ${z_box}-${vacuum_width}
+variable 	vacuum_high_y equal ${y_box}-${vacuum_width}
+</font>
+</pre>
+上の図で説明した引き出しの移動を行うにはyとz方向の境界が束縛されないようにしなくてはならないので、その境界に真空を入れる必要がある。上のスクリプトは真空を入れるために使われる変数を定義している。どう使われるかは後で明らかになる。
+
+<pre>
+<font color="green"; size="+1">       
+units metal
+boundary p p p
+atom_style atomic
+lattice	bcc ${lc} orient x 1 1 1 orient y 1 1 -2 orient z -1 1 0
+region box block 0 ${x_box} 0 ${y_box} 0 ${z_box}
+create_box 1 box
+create_atoms 1 box                
+</font>
+</pre>
+
+このスクリプト部分のはほぼ<a href="edge.html">刃状転位を挿入する</a>と同じだ。
+                
+<pre>
+<font color="green"; size="+1">
+region lower_vacuum_z block INF INF INF INF INF ${vacuum_low}
+delete_atoms region lower_vacuum_z
+region upper_vacuum_z block INF INF INF INF ${vacuum_high_z} INF
+delete_atoms region upper_vacuum_z
+</font>
+</pre>
+このブロックでは上で述べたようにz方向の上下に真空を入れている。
+<pre>
+<font color="green"; size="+1">
+region lower_vacuum_y block INF INF INF ${vacuum_low} INF INF
+delete_atoms region lower_vacuum_y
+region upper_vacuum_y block INF INF ${vacuum_high_y} INF INF INF
+delete_atoms region upper_vacuum_y
+</font>
+</pre>
+このブロックでは上ででz方向で行った境界の処理をy方向においても行っている。
+
+<pre>
+<font color="green"; size="+1">
+variable	y_box_half equal ${y_box}/2.+0.167
+variable	z_box_half equal ${z_box}/2.+0.167
+region block_one block INF INF ${y_box_half} INF ${z_box_half} INF
+region block_two block INF INF INF ${y_box_half} ${z_box_half} INF
+region block_three block INF INF INF ${y_box_half} INF ${z_box_half}
+region block_four block INF INF ${y_box_half} INF INF ${z_box_half}
+</font>
+</pre>
+ここでは、IからIVまでの領域を定義している。
+<pre>
+<font color="green"; size="+1">
+group block_one region block_one
+group block_two region block_two
+group block_three region block_three
+group block_four region block_four
+</font>
+</pre>
+そして、それぞれの分割領域（引き出し）にある原子群をgroupとして定義する。
+
+<pre>
+<font color="green"; size="+1">
+displace_atoms block_one move 0.000 0 0 units lattice
+displace_atoms block_two move 0.125 0 0 units lattice
+displace_atoms block_three move 0.25 0 0 units lattice
+displace_atoms block_four move -0.125 0 0 units lattice
+</font>
+</pre>
+displace_atomsコマンドは指定されたgroupの原子を移動させるコマンドである。ここでは上の図で説明したような距離でそれぞれの”引き出し”の中の原子を移動させる。実はこのブロックの最初の行は原子の移動距離が0.0 Angstromなので不要なのだが、説明をわかり易くするため書いておいた。
+
+<pre>
+<font color="green"; size="+1">
+pair_style eam/fs 
+pair_coeff * * ./potentials/Fe_mm.eam.fs Fe
+neigh_modify every 1 delay 0 check yes
+fix 1 all box/relax iso 0.0 vmax 0.001
+thermo 1000
+thermo_style custom step pe lx ly lz pxx pyy pzz
+dump 1 all custom 100 bccFe_screw_relax.out mass type xs ys zs
+min_style cg 
+minimize 1e-25 1e-12 50000 10000 
+</font>
+</pre>
+最後はボックスを構造緩和させて終わりである。<br><br>
+
+らせん転位が挿入されると元々単純な平面だったx面すなわち{1 1 1}の結晶面が最初に示した図のように引き裂かれたようになる。引き裂かれた面の変位は上で言ったように<b>b</b>=1/2<111>となる。これがこのらせん転位のバーガーズベクトルである。よってバーガーズベクトルは前講座の刃状転位の場合と同じになる。OVITOのスナップショットの図でもわかるように転位線の方向はx方向すなわち<111>方向でバーガーズベクトルと平行になる。刃状転位の場合はバーガーズベクトルと転位線の方向は直行するので、この点は刃状転位と異なる。<br><br>
+
+
+
+<pre>
+----------------------------------------------------
+</pre>
+<a href="index.html">目次へ</a>    前は<a href="edge.html">刃状転位を挿入する</a>     次は<a href="loop.html">転位ループを挿入する</a>
+<br><br>
+</body>
+</html>

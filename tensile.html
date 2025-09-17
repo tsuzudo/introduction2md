@@ -1,0 +1,184 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<head>
+<title>引っ張り変形を行う</title>
+</head>
+
+<body bgcolor="ffffcc">
+<center><h2 style="color:Blue;">引っ張り変形を行う</h2></center><br>
+
+さて、前回の講座では材料のせん断変形をモデリングするためのMDについて学んだ。材料科学において、せん断変形と同等に重要なのが引っ張り変形である。これは、材料を上下方向に伸ばすように変形することを意味する。<br><br>
+
+実験的な材料研究において、引っ張り変形は材料の延性（伸び易さ）や破壊強度を解析するために頻繁に使われる方法である。破壊は実生活において身近な現象であり、地震などの影響で橋や道路など社会インフラにおいて起きる。このように、破壊は巨視的なすなわち肉眼で見える現象として観察されるが、その物理的本質は原子間結合の解離が集団的に起きる現象であり、その現象の本質を実験的に直接観察することは今の科学レベルではできない。そのため、いままで壊れなかったものがどうしてその時になって初めて壊れたのか、またどうして他の場所でなくその場所で破壊が起きたのかなど、破壊について理解できない単純な疑問はいくつもある。よって<b>破壊のメカニズム研究は、原子レベルの挙動をモデリングするMDの応用が強く望まれる分野の一つである。</b><br><br>
+
+引っ張り変形のMDを行う場合、破壊の起点となる切り欠きなどをあらかじめ入れてMDを行うことが多いが、ここでは前回と同じようにこの変形をMDで行う方法のみに注目したいので、鉄の完全結晶を変形する例を示す。<br><br>
+		
+このMDのスクリプトはscriptディレクトリの中のbccFe_tensile.lcmである。実行は以下のコマンドで行う。
+<pre>
+    <font size="+1"; color="green">
+$work> lmp_serial -in script/bccFe_tensile.lcm
+</font>
+</pre>
+
+これによりbccFe_tensile_*.outという形式のファイルが多数出力される。その一つ、例えば最初のファイルbccFe_tensile_0.outをOVITOに読み込ませると自動的に同じ形式のその他のファイルも読み込まれる。OVITO画面下のPlayボタンでアニメーションを実行して、下の動画のように上下に伸びている様子が確認できれば成功である。<br><br>
+<center>
+<video width="500" controls>
+  <source src="bccFe_tensile.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+</center>
+<br><br>
+
+以下で、このMDで使われたスクリプトをステップバイステップで見ていくことにする。
+<pre>
+<font size="+1"; color="green">
+units metal
+boundary p p p
+atom_style atomic
+variable 	lc equal 2.83
+lattice bcc ${lc} orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+variable 	x_box equal 30*${lc}
+variable 	y_box equal 30*${lc}
+variable 	z_box equal 50*${lc}
+region box block 0 ${x_box} 0 ${y_box} 0 ${z_box} units box
+create_box 1 box
+create_atoms 1 box
+</font>
+</pre>
+unitsコマンド、boundaryコマンド、atom_styleコマンドの説明はもう繰り返さないので、わからない受講者は<a href="relax.html">構造緩和を行う</a>の講座へ戻って確認してほしい。<br><br>
+
+次のvariableコマンドでは"lc"という変数を定義している。後からわかるがこれはここで使われる鉄の原子間ポテンシャルの格子定数である。<br><br>
+
+次のlatticeコマンドは過去の講座で出てきた。サンプルの初期値を作るときに使う格子系を定義するためのコマンドである。<br><br>
+
+次の３つのvariableコマンドは"x_box"、"y_box"、"z_box"の3つの変数をそれぞれ格子定数の30倍として定義する。<br><br>
+
+次のregionコマンドも既出であるが、ここでは"box"とう名前の直方体領域を定義する。ここで、最後の引数が"units box"になっていることに注目して欲しい。これまでは"units box"の代わりに"units lattice"が用いられてきており、その場合は長さの単位が格子定数がなっていた。"units box"が指定されると、このコマンドで使用された長さの単位がAngstromになる。要するに上の3つのvariableコマンドは"units box"を使うための準備だったわけである。<br><br>
+
+ボックスを定義するときに長さの単位を前回までの講座のようにlattice（格子定数）としても今回のようにbox（すなわちAngstrom）しても本質的に違いはない。一般的に、スクリプトが複雑になるにつれboxにする方が楽になる傾向がある。<br><br>
+
+その後の2つのコマンドは既出であるが、create_boxは上で作られた"box"と呼ばれる領域から計算に使用するボックスを作っており、最後のcreate_atomsはそのボックスの中に、上のlatticeコマンドで指定した結晶系を作るようにタイプ1の原子を入れるためのコマンドである。<br><br>
+
+次のブロックを示す。
+		
+<pre>
+<font size="+1"; color="green">
+pair_style eam/fs
+pair_coeff * * potentials/Fe_mm.eam.fs Fe
+neigh_modify every 1 delay 0 check yes
+</font>
+</pre>	
+
+ここでは原子間ポテンシャルの指定および、それを使って原子間力を計算が行われる原子ペアのリスト（Neighborリスト）の更新に関するオプションを指定している。このブロックの詳しい説明は不要と思う。<br><br>
+
+次に行こう。
+		
+<pre>
+<font size="+1"; color="green">
+variable 	dump_step equal 200
+thermo ${dump_step}
+thermo_style custom step pe lx ly lz press
+min_style cg
+min_modify dmax 0.05
+minimize 1.0e-25. 1.0e-12 10000 50000 
+</font>
+</pre>	
+		
+このブロックでは、これまで何度か出てきたが、構造緩和を行っている。まずvariableコマンドで"dump_step"という変数を定義した。thermoコマンドではシミュレーションの途中に熱力学変数を計算し出力する頻度を指定する。その次のthermo_styleコマンドではどういう変数を標準出力に出力させるかを指定する。ここでは時間ステップ、全ポテンシャルエネルギー、ブロックのx、y、z方向の長さ、圧力である。<br><br>
+		
+次のmin_styleコマンドは構造緩和のアルゴリズムの指定、ここでは共役勾配法が使われている。<br><br>
+
+min_modifyコマンドでは構造緩和の速さの上限を指定する。ここでは1イタレーションでそれぞれの原子位置が0.05 Angstrom以上は変化しないとする。構造緩和がうまくいかない場合はより小さい値にし、収束が遅すぎる場合にはより大きい値にすべきである。ディフォルト値が0.1なのでそれ以外の値を指定したい時だけこのコマンドを使う。普段は何もしなくて良いが、変える場合はこのコマンドを使う。<br><br>
+
+最後のminimizeコマンドで構造緩和が実行される。4つの引数については<a href="relax.html">構造緩和を行う</a>の講座で説明したのでここでは繰り返さない。<br><br>
+
+これで引っ張り変形をするための初期値ができた。以下では変形を実行していく。まず、必要な変数を定義する
+<pre>
+<font size="+1"; color="green">
+variable 	lx_current equal lx
+variable 	ly_current equal ly
+variable 	lz_current equal lz
+variable 	lx0 equal ${lx_current}
+variable 	ly0 equal ${ly_current}
+variable 	lz0 equal ${lz_current}
+variable 	dstrain equal 0.001
+variable	poisson_ratio equal 0.27
+variable 	lz_delta equal ${dstrain}*${lz0}/2
+variable 	lx_delta equal ${lz_delta}*${poisson_ratio}
+variable 	ly_delta equal ${lz_delta}*${poisson_ratio}
+</font>
+</pre>
+"lx_current"、 "ly_current"、および"lz_current"はボックスすなわち材料の大きさである。また、"lx0"、 "ly0"、および"lz0"も同じものとして定義されている。後でわかるが、"lx_current"らは引っ張り変形を行っている時の現在値で、"lx0"らはその初期値、すなわち構造緩和直後の大きさとして使用する。<br><br>
+		
+さて後で詳細を説明するが、この講座のMDでは前講座の<a href="shear.html">せん断変形を行う</a>のように系をアニーリングした後にある部分に強制的速度を与えて系を変形するような方法を使わない。<b>ここでは絶対零度のまま材料を小さな刻みで無限の速さで変形し変形後に構造緩和をさせる過程を繰り返すような方法を採用する。</b><br><br>
+
+次の行で定義された"dstrain"は1刻みあたり変形の割合であり、ここでは最初のz方向の長さ"lz0"の0.1%ずつ引っ張り変形していくことになる。<br><br>
+		
+		次の"poisson_ratio"は材料のポアソン比である。鉄結晶がz方向に伸ばされれば横方向に縮むことになるがその割合を示すのがポアソン比であり文献値を代入しておく。<br><br>
+		
+		後で出てくるが1刻みの微小な変形はボックスの3方向の境界を微小に動かすことによって実現する。"lz_delta"、"lx_delta"、"ly_delta"は1刻みあたりに動く幅であり、z方向の定義で2で割られているのは上下の境界を両方とも動かすためで、これにより1刻みあたり上下の長さは"lz_delta"*2だけ伸びることになる。また"lx_delta"、"ly_delta"の定義にはポアソン比が使われる。<br><br>
+		
+それではスクリプトの最後の部分を示そう。
+		
+<pre>
+<font size="+1"; color="green">
+reset_timestep 0
+dump 1 all custom ${dump_step} bccFe_tensile_*.out id type xs ys zs
+variable 	final_strain equal 0.04
+variable 	nloop equal ${final_strain}/${dstrain}
+variable loop loop ${nloop}
+label loop_start
+	print " "
+	print " "
+	print "%%%%% LOOP INCREMENT ${loop} %%%%"
+	change_box all x delta ${lx_delta} -${lx_delta} y delta ${ly_delta} -${ly_delta} &
+	z delta -${lz_delta} ${lz_delta} remap units box
+	minimize 1.0e-25 1.0e-25 1000 10000
+	run 0
+	next loop
+jump SELF loop_start
+</font>
+</pre>
+最初のreset_timestepはこれまで何度か出てきたが、時刻の初期化である。<br><br>
+
+"dump ... custom"コマンドもここまで何度か出てきたので詳細は説明しないが、各原子の途中経過の状態をファイルに出力するためのコマンドである。<br><br>
+
+次の変数final_strainはこの引っ張りシミュレーションによる最終的な伸びを定義する。ここでは、最終的に4%まで伸ばすことにする。<br><br>
+
+次の変数nloopは最終的な伸びを上で出てきた微小な引っ張りによる伸びで割っているので微小な引っ張りを行う回数になる。<br><br>
+
+次の"variable ... loop"コマンドは初出である。"variable ??? loop $$$"という構文で繰り返し計算でインクリメントされる変数を定義する。ここで???は変数名でその初期値は1にセットされる。$$$はその繰り返し数または繰り返し過程におけるloop変数の最後の値である。これで以下の繰り返し計算をする準備が整った。<br><br>
+
+次のlabelコマンドは一番下のjumpコマンドの行き先を指定する。この後の説明でこのlabelコマンドが繰り返し計算においてどのように使われるかが明らかになるので、このまま進もう。<br><br>
+
+この後インデントされている部分が繰り返される部分である。まず最初の3つのprintコマンドは標準出力へこの繰り返し計算の途中経過を表示するためのものである。<br><br>
+
+次の2行は"&"で繋がっていて1つの文である。このchange_boxコマンドはボックスの境界を強制的に移動させるコマンドであり、"x delta"、"y delta"、"z delta"のキーワードが記述された場合、それぞれボックスの下境界と上境界の移動差分が指定される。ここではxとy方向では下境界が増加し上境界が減少しているので圧縮され、z方向では逆に伸ばされることがわかる。remapはこのコマンドのキーワードで変形の度合いに比例して原子位置を変えることを要求し、その後の"units box"はこのコマンドに使われた長さの単位がAngstromであることを示している。これが上で何度か述べた微小な引っ張り変形の実体である。<br><br>
+
+minimizeは上の微小な強制的変形後の構造緩和させるコマンドである。<br><br>
+
+次の"run 0"は少し使い方がトリッキーだ。これまでのrunコマンドは与えられたステップ数だけ動的な計算を行うために使われてきたが、ここでは引数が"0"となっていて奇妙だ。これは単に系の熱力学変数を計算させるためだけにrunコマンドが使われている。<br><br>
+
+"next loop"では"loop"という変数を次の値にする。ここではこれまでの値に1が足されることになる。<br><br>
+
+最後のjumpコマンドはスクリプトのある位置にジャンプさせるためのコマンドであり、最初の引数にSELFが記述された場合にはこのスクリプトの第2引数で指定されたlabelにジャンプする。最初の引数はスクリプトのファイル名でもよく、他のスクリプトが記述された場合には、そのスクリプトに移動する。ここではこの繰り返し計算ループの最初に戻ることになる。ただし、前のnextコマンドで"loop"が繰り返しの範囲（ここでは"nloop"）を超えていたらこの文は無視されて、繰り返し計算が終了することになる。このケースではスクリプト全体の最後なのでLAMMPSが終了することになる。<br><br>
+		
+<center><font size="+2">◇</font></center><br><br>
+
+少し進んだ内容で恐縮だが、この講座を終える前に受講者に知っておいてもらいたいことがある。１つ前の講座では<a href="shear.html">せん断変形を行う</a>MDを紹介した。そこでは材料のある部分に強制的に速度を与えて変形する方法を用いた。その方法をこの講座で紹介した引っ張り変形に適用することも可能だ。<br><br>
+
+ただし、速度を与える方法だと、どうしても実験で行う変形よりも変形速度が非現実的に速くなるという問題がある。実験における変形時間は通常秒単位で電子顕微鏡などで観察できる。しかし、MDで追跡できる時間は長くてもns単位である。一つの解決法は今回のように0 Kで微小に変形して緩和させる手続きを繰り返すことである。この場合は微小な変形の後、毎回構造緩和させているので、変形速度が速くて現実的でないという批判からは逃れられる。<br><br>
+
+ただし、ここで紹介した方法は有限温度では使えないテクニックなので、格子振動が変形に影響を及ぼす場合などには応用できない。実際、材料は温度が高くなるにつれ塑性変形が起き易くなり、破壊が抑制される。よって有限温度で非常にゆっくり変形するMDが理想的だが、最新のスーパーコンピュータでさえそれには限界がある。すなわち、どちらの方法を選んだとしても一長一短があるということだ。<br><br>
+
+勘違いしないで欲しいが、有限温度の変形MDが全く現実を反映していないということではない。ただし、「MD結果が正しい」と盲目的に信じるのは危険であり、丁寧な考察が求められるということだ。
+<pre>
+-----------------------------------------------------------
+</pre>
+<a href="index.html">目次へ</a>     前は<a href="shear.html">せん断変形を行う</a>     次は<a href="cascade.html">照射損傷をモデル化する</a>
+<br><br>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UFT-8">
+
+<head>
+<title>照射損傷をモデル化する</title>
+</head>
+
+<body bgcolor="ffffcc">
+<center><h2 style="color:Blue;">照射損傷をモデル化する</h2></center><br>
+
+核融合・原子力材料や加速器材料などの照射下での材料挙動に興味のない人はこの講座を飛ばすことができる。<br><br>
+		
+結晶系を持つ固体材料に高速の陽子や中性子などの粒子が入射されると、それに衝突された原子は結晶中の位置から弾き出される。弾き出された原子が高速の場合、その原子が別の原子を弾き出し、それが繰り返し起きれば結晶構造が乱されることになる。<br><br>
+
+この乱れは照射損傷と呼ばれるが、これが繰り返されるとやがては材料強度が劣化していくことになる。よって放射線環境下の材料の健全性を担保するには、照射損傷について正確な理解が求められる。その理解の基本となるのが上記の原子の弾き出し現象である。これまで学習してきた変形などと異なり、非常に短い時間に起きる現象なのでMDを応用するのに適している対象と言える。
+<br>
+<br>
+通常MDに応用される原子間ポテンシャルは適切な関数系を電子状態に基づいた計算、すなわち第一原理計算結果にフィットすることにより得られる。ただし、通常そのような原子間ポテンシャルは、「すべての原子が近接する原子とは適切な距離に置かれている」ことを前提としている。しかしながら、照射のMDを行う場合には原子が高速で移動しているので、原子どうしがかなり近づくことが予想される。よって、これまで使ってきた原子間ポテンシャルでは正しい計算ができない。<br><br>
+
+もっと具体的に言えば、原子間が短距離である場合の反発項がモデル化されている必要がある。ここではその短距離反発項として、Ziegler-Biersack-Littmark(ZBL)のモデルを用いる。この講座でこのモデルの詳細な説明はしないが、この短距離反発項は中長距離部分の関数にスムーズに接続されなければならない。すなわち、原子間距離によって使用する関数をシームレスに変化させる複合的な関数を用いる。<br><br>
+
+この講座で使われる原子間ポテンシャルは以上のような考慮がされているものである。ここで書かれていることは、MD初心者にとっては少し難しい内容かもしれないが、多くのMD初心者がこの原子間ポテンシャルの問題点に気づかず、そのままLAMMPSをダウンロードした時に一緒についてきた原子間ポテンシャルをそのまま使い、間違いを起こすことが多い。<b>LAMMPS用に開発されたポテンシャルであるというだけでは必ずしも照射のシミュレーションには使えない</b>ので、初心者がここで扱うようなシミュレーションを行う場合はより経験のある人にポテンシャルが適切かどうかを尋ねることをお勧めする。<br><br>
+
+原子間ポテンシャルの話はこれぐらいにして、次はどのようにして照射の効果をを材料に導入するのかについて見ていく。通常、材料に入射された中性子等の高速粒子をモデリングすることはない。その代わり、その高速粒子が最初に衝突し大きなエネルギーを付与される原子がモデル化される。この原子はPrimary knock-on atom (PKA)と呼ばれ、それに瞬時に速度を与えることでMDが開始されることになる。<br><br>
+
+PKAは大きなエネルギーすなわち大きな速度が与えられると、MD開始時の格子位置にはとどまらず、自分の周りの原子と衝突するのでそれらの近傍の原子も格子位置から次々と弾き出すことになる。よってPKA近傍の温度は急激に上昇する。ただし、時間の経過とともに熱が拡散しPKA近傍の温度は下がっていき、やがて平衡状態になり最終状態が確定する。その時点でMDを終了させる。<br><br>
+		
+上記の熱拡散は原子間ポテンシャルによって適切にモデル化されている。ただしボックスが小さいと熱がボックス中にこもってしまい拡散していかず実際の熱拡散現象を再現できない。ボックスを大きくとれば問題ないのだが、計算効率を考えるとなるべく小さなボックスでモデル化したい。実は、ボックスを小さくとっても熱拡散をモデリングできる方法がある。それはボックスの外殻の部分を熱浴にしてPKAによる発熱を徐熱する方法である。その詳細は下のスクリプトの説明の中で述べる。<br>
+<br>
+照射損傷のスクリプトは"bccFe_cascade.lcm"である。また実行は以下のように行う。
+<pre>
+<font color="green"; size="+1">
+$ lmp_serial -in script/bccFe_cascade.lcm
+</font>
+</pre>
+シミュレーションが正常に終了すれば"bccFe_cascade.out"というデータファイルができるので、それをOVITOに読み込ませて格子の乱れを確認しよう。
+<br><br>
+<center>
+<video width="500" controls>
+  <source src="bccFe_cascade.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+</center>
+<br><br>
+
+上の動画はOVITOのModification機能におけるCommon neighbor analysis(CNA)解析によってBCC格子が乱れた部分だけを表示している。OVITOでこのModificationを行うには、"Add modification"と書かれているプルダウンメニューにおいて以下の3つのModificationをプログラムする必要がある。まず最初に"Common neighbor analysis"を行い、次に"Expression selection"でStructureType=="BCC"と記述し、最後に"Delete selected"を行う。その後、画面下部のPlayボタンを押せば上の動画が見られるはずだ。<br><br>
+
+さて、これまでのようにここで使われたスクリプトを1行ずつ見ていくことにする。
+
+<pre>
+<font color="green"; size="+1">
+variable   nsize equal 20 
+variable   T equal 50.
+</font>
+</pre>
+
+まず、このMDで重要なパラメータ2つを変数として定義する。1行目はボックスの大きさで後でわかるように単位は格子定数である。<br><br>
+
+次は材料の温度で単位は絶対温度（K）である。ここでは極低温の50Kとした。純粋に弾き出し現象だけを解析したい場合には格子振動の影響を最小限にするため、MDだけでなく実験の場合も極低温で行われることが多い。
+<pre>
+<font color="green"; size="+1">		
+units metal
+boundary p p p
+atom_style atomic
+</font>
+</pre>
+
+このスクリプト部分は過去の講座で何度か出てきたので説明は省く。
+
+<pre>
+<font color="green"; size="+1">		
+lattice bcc 2.83
+region box block 0 ${nsize} 0 ${nsize} 0 ${nsize}
+create_box 1 box
+create_atoms 1 box
+mass 1 55.845
+</font>
+</pre>
+
+latticeコマンドで格子定数を定義する。これは原子間ポテンシャルに依存する。ここでは2.83 Angstromとする。<br><br>
+
+次のregionコマンド、create_boxコマンド、およびcreate_atomsコマンドも過去の講座で何度か出てきたので詳しい説明はしないが、ボックス定義してその中に鉄原子をbcc格子状に挿入している。<br><br>
+
+<b>次のmassコマンドは第1引数で定義された原子種の質量を定義する。</b>上のatom_styleコマンドで原子ごとの属性が定義されるが、これまでの例ではその属性で十分であった。しかしながら今回は質量の属性を使う必要がある。上の例のようにatomicが選択されただけでは質量は定義されないので、massコマンドを使ってこのように別に定義する必要がある。
+
+<pre>
+<font color="green"; size="+1">		
+pair_style eam/fs
+pair_coeff * * ./potentials/Fe_Ackland04_ZBL.eam.fs Fe	
+</font>
+</pre>
+次はポテンシャルの定義である。上ですでに説明したように、これまで使ってきた"Fe_mm.eam.fs"ではなく、短距離相互作用がモデル化されているZBLモデルと中長距離の相互作用モデルがシームレスに接続された原子間ポテンシャルを使う。
+		
+<pre>
+<font color="green"; size="+1">		
+neighbor 1.0 bin	
+neigh_modify delay 5 check yes
+</font>
+</pre>
+
+次はNeighborリストの設定である。ここではskinを1.0 Angstromにしている。skinについては<a href="shear.html">せん断変形を行う</a>の講座のneigh_modifyコマンドの説明とともに行なっているので忘れた方はそちらを参照して欲しい。ここではskinがディフォルト値の2.0 Angstromよりも薄くなっている。また、neigh_modifyコマンドでNeighborリストを一度更新したら5計算ステップは更新しないように設定されている。<br><br>
+
+次を見ていこう。
+
+<pre>
+<font color="green"; size="+1">		
+variable nsize1 equal ${nsize}-2.
+region   rallatoms block INF INF INF INF INF INF
+region   rinterior block 2 ${nsize1} 2 ${nsize1} 2 ${nsize1}
+region   rexterior block 2 ${nsize1} 2 ${nsize1} 2 ${nsize1} side out
+group    interior region rinterior
+group    exterior region rexterior
+</font>
+</pre>
+このブロックでは上で記述した"熱浴となる外殻部分"を定義する。外殻の厚さは格子定数の2倍とする。全ての原子を表すグループallをボックスの内部に存在するinteriorグループとそれ以外のexteriorグループに分ける。variableコマンド、regionコマンド、およびgroupコマンドはすでに学習したのでその知識をもとにこのスクリプト部分を読み解くことができるだろう。
+
+<pre>
+<font color="green"; size="+1">	
+variable nsize2 equal ${nsize}/2
+region   rPKA sphere ${nsize2} ${nsize2} ${nsize2} 0.1
+group    PKA region rPKA
+</font>
+</pre>
+
+このブロックでは上で説明したPKAをグループとして定義する。これは後でPKAに速度を与える時にグループとして定義しておくと便利だからである。ボックスの中心に半径0.1 Angstromの球を定義しそこに入る原子群をPKAグループとする。0.1 Angstromとしておけば中心の原子1個のみがグループに属することは試行によってわかっている。この原子1個グループを後のスクリプトでPKAとして扱うことになる。
+
+<pre>
+<font color="green"; size="+1">	
+velocity all create ${T} 349876
+fix          1 all nve
+fix          2 exterior temp/rescale 1 ${T} ${T} 0.5 1.0 region rexterior
+fix          3 interior temp/rescale 1 ${T} ${T} 0.5 1.0 region rinterior
+</font>
+</pre>
+
+次はvelocity ... createコマンドによる温度設定である。これはすでに<a href="anneal.html">アニーリングを行う</a>で説明しているが、"all"グループ内の原子にランダムな速度を与えて系に温度を与える。<br><br>
+
+fix ... nveコマンドは、MD実行時にnveアンサンブルを採用することを指定する。このコマンドは既出であるので詳しい説明はしない。<br><br>
+
+fix ... temp/rescaleも既出のコマンドである。ここではexteriorグループ、interiorグループの両方において温度がTに保持される。
+
+<pre>
+<font color="green"; size="+1">	
+timestep     0.001														      #-- timestepは1 fs
+thermo       100
+thermo_style custom step temp pe etotal press
+run          500
+unfix        3
+run          500
+</font>
+</pre>
+
+このブロックでは照射損傷を行う前の初期状態を作る。<br><br>
+
+timestepコマンドはシミュレーションの1計算ステップの時間幅を定義する。ここではディフォルト値の1fsに設定されている。<br><br>
+
+thermoおよびthermo_styleはすでに出てきたのでここでは説明しない。わからない受講者は<a href="shear.html">せん断変形を行う</a>などに戻って確認して欲しい。<br><br>
+
+
+最初のrunコマンドではボックス全体を温度調整しながらアニーリングを行なう。<br><br>
+
+unfixコマンドはボックス内部の温度調整を取り消している。この後行う弾き出し損傷の過程ではボックス内部の状態を強制的に変更すべきではないので、その準備として今度は内部の温度調整なしでアニーリングを行う。それが2つ目のrunコマンドである。<br><br>
+
+次が最後のスクリプト部である。
+<pre>
+<font color="green"; size="+1">	
+compute      eng all pe/atom
+velocity     PKA set 12. 33. -200.
+timestep     0.00001
+dump         2 all custom 100 bccFe_cascade.out id type xs ys zs c_eng
+reset_timestep	0
+run          8000
+</font>
+</pre>
+		
+computeコマンドはシミュレーション中に計算する熱力学変数を定義する。variableコマンドは変数がすぐに計算されるが、computeコマンドではMD実行中に原子の状態から計算される変数を宣言する。このコマンドでは各原子のエネルギーをengという熱力学変数として宣言している。この後、これはc_engという形式でその値を参照できる。<br><br>
+
+さて次のvelocityコマンドではいよいよPKAに速度を与える。ここではx、y、z方向の速さがAngstrom/psで与えられる。単位は最初の方で出てくるunitsコマンドで定義されている。<br><br>
+
+次のtimestepコマンドでは時間幅をいつもの1/1000にする。PKAが弾き出された直後は原子の動きが非常に速いためこのような選択をする。<br><br>
+
+dump ... customコマンドの意味はもういいだろう。ただし、ここで"c_eng"という原子の属性をdumpすることが要求されている。これはcomputeコマンドで宣言された原子ごとのエネルギー"eng"を参照している。これにより各原子のエネルギーも各原子の位置と同様に"bccFe_cascade.out"に書き出されることになる。このdumpの頻度は100計算ステップごとに指定されている。ここで上のthermoの引数が100になっていることに注目しよう。computeで宣言された熱力学変数はthermoコマンドで指定された頻度でしか計算されない。よって"c_eng"がdumpコマンドで要求された場合、dumpコマンドの頻度は100またはその倍数でなくてはならない。そうでないとLAMMPSはエラーを発生させる。この種のエラーはLAMMPSを使っていてよくやってしまう間違いで、エラーメッセージを読んでも何が間違いかが明らかではないので初中級者が陥る落とし穴である。<br><br>
+最後の2行ではreset_timeコマンドで時間を初期化して、runコマンドでPKAに速度が与えられてその後の時間発展が得られる。<br><br>
+
+さてこの講座の最初の方で、dumpされたファイルである"bccFe_cascade.out"をOVITOに読み込んでCNA解析をした結果を、動画として示した。これでも格子の乱れは可視化できるが、MD計算中に計算された熱力学変数c_engを用いても格子の乱れを可視化できる。下の動画では原子をそれぞれのc_engの値によって色付けして、ボックスの中心を通る断面で描画している。すなわち、新たな熱力学変数を定義することによってより多彩な解析が可能となる一例である。<br><br>
+
+<center>
+<video width="500" controls>
+  <source src="bccFe_cascade_c_eng.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+</center>
+<br><br>
+<pre>	
+-----------------------------------------------------------
+</pre>
+<a href="index.html">目次へ</a>     前は<a href="tensile.html">引っ張り変形を行う</a>     次は<a href="read_data.html">LAMMPSの外部で初期値を作る</a>
+<br><br>
+</body>
+</html>

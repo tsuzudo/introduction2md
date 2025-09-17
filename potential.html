@@ -1,0 +1,103 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<head>
+<title>経験ポテンシャルについて</title>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { equationNumbers: { autoNumber: "AMS" }},
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    },
+    "HTML-CSS": { matchFontHeight: false },
+    displayAlign: "left",
+    displayIndent: "2em"
+  });
+</script>
+</head>
+
+<body bgcolor="ffffcc">
+<center><h2 style="color:Blue;">原子間ポテンシャルについて</h2></center><br>
+
+まず最初に断っておくが、この講座の内容は自分が知っていることを羅列的に書いただけで、まだまだ満足のいくものではない。特に機械学習ポテンシャルのセクションで修正・加筆が必要な部分が多くあるが、その作業はすぐには終わりそうもないので、とりあえず公開することにする。
+
+<a name="exec"><h3 style="color:Blue;">原子間ポテンシャルの探し方、作り方</h3></a>
+まず、ダウンロードしたLAMMPSのpotentialsディレクトリや<a href="https://www.ctcms.nist.gov/potentials/">Interatomic Potentials Repository(IPR)</a>や<a href="https://openkim.org">OpenKIM"</a>でLAMMPSでそのまま使えるポテンシャルファイルがあるかどうかをチェックする。ない場合は、論文等でポテンシャルがすでに作成されてあるかをチェックして、存在していればLAMMPSで読めるフォーマットのデータファイルを自分で作成する。データファイルのフォーマットはポテンシャルのタイプに依存しているので、詳細はLAMMPSのマニュアルを参照しなくてはならない。
+
+<a name="type"><h3 style="color:Blue;">材料研究で良く使われる原子間ポテンシャル</h3></a>
+<ol>
+
+<li>Bond-orderポテンシャル(BOP)<br>
+$\sigma$および$\pi$結合による量子力学に基づいたポテンシャル。Al、Cu、Ga、Zn等の純金属や合金のポテンシャルが利用可能。potentialsディレクトリやIPRでで"bop"の拡張子がついているものがBOPのフォーマットのデータファイルである。BOPの枠組みのポテンシャル計算は現在のところGPUで加速できない。<br>
+<br>
+<li>Embedded Atom Method(EAM)ポテンシャル<br>
+EAMポテンシャルは金属材料研究でもっとも使用頻度が高いポテンシャルである。このコースでもこのタイプのポテンシャルを使った。全エネルギーは以下の式から計算される。<br>
+<br>
+$E_i = F_\alpha \left(\sum_{j \neq i}\ \rho_\beta (r_{ij})\right) +
+      \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})$<br>
+<br>
+最初の項は埋め込みエネルギーの項で電子密度$\rho$の関数で、第2項は2体原子間ポテンシャルである。合金の場合には混合に関する情報を扱えるeam/alloyフォーマットを利用する。また、Finnis-Sinclair型のポテンシャルはeamタイプの1つで全エネルギーを以下の式で計算する。<br>
+<br>
+$E_i = F_\alpha \left(\sum_{j \neq i}\
+\rho_{\alpha\beta} (r_{ij})\right) +
+\frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})$<br>
+<br>
+上の式と違うところは、$\rho$が2つの元素$\alpha$と$\beta$に依存しているところで、異なった元素の影響をモデルに反映できるようになっている。<br><br>
+
+また、Concentration-dependent EAMモデル(pair_style eam/cd)はeam/alloyの拡張版で、合金元素の局所濃度によってモデルを変化させ、より正確なポテンシャルになるように改良されたものである。<br>
+<br>
+EAM族でGPUで利用可能なのはeam、eam/alloy、eam/fsの３つのポテンシャルタイプ。eam/cdにはFe-Cr系でよく使われるポテンシャルがあるが、これは現在のところGPUで加速できない。<br>
+<br>
+<li>Angular Dependentポテンシャル(ADP)<br>
+上記のEAMの式に局所的な原子環境の歪みを考慮する項を加えたポテンシャルタイプ。MishinらのAl-Cuポテンシャル等が利用可能。ADPは現在のところGPUで加速できない。<br>
+<br>
+</ol>
+
+<a name="ml"><h3 style="color:Blue;">機械学習ポテンシャル(Machine Learning Potential: MLP)<img src="under_const.png" alt="under construction" width="25">
+</h3></a>
+人工知能を用いて非常に正確なポテンシャルを作ることができる枠組みで、現在最も注目を集めている原子間ポテンシャル作成方法である。
+
+<ol>
+<li><a href="http://ann.atomistic.net/">aenet</a>: Behlar-Parrinello法に基づいたArtificial Neural Network(ANN)による作成ツール<br>
+これを用いて作られたポテンシャルには、BCC鉄[by Mori and Ozaki]やTiO2[by Artrith]などがある。<a href="https://github.com/HidekiMori-CIT/aenet-lammps">Moriのライブラリ</a>をLAMMPSに追加すればaenetで作成されたポテンシャルを使用できる。まだGPUでの実行はできない。eam/fsと比較し約500倍の計算時間。<br>
+<bR>
+<li><a href="https://compphysvienna.github.io/n2p2/">n2p2</a>:Artificial Neural Network(ANN)による作成ツール<br>
+Behlar-Parrinello法のツール。LAMMPSでの実行環境が公開されているが詳細は未調査。<br>
+<br>
+<li><a href="https://libatoms.github.io/GAP/">Gaussian Approximation Potential (GAP)</a><br>
+3次元の原子の近傍密度のバイスペクトル（自己相関関数をフーリエ変換したもの）と機械学習の一つであるガウス過程回帰を応用したポテンシャル作成法。調整パラメータが多いのでツールに慣れるのが大変とされている。すでにDoragoniらによるBCC鉄やByggmaestarらによるWのポテンシャルが作られている。<a href="https://docs.lammps.org/pair_quip.html">QUIPパッケージ</a>によりLAMMPSで実行が可能。詳細は未調査。<br>
+<br>
+<li><a href="https://docs.lammps.org/pair_snap.html">Spectral Neighbor Analysis Potential(SNAP)</a><br>
+上記GAPではガウス過程回帰を用いた機械学習法を使うが、SNAPでは線形回帰を用いる。これによりGAPより堅牢で計算コストが低いポテンシャル作成法を目指している。LAMMPSの供給元サンディア国立研究所で作成ツールが開発され、LAMMPSとの相性は良い。すでにTa、W、W-Beポテンシャル等が開発された。
+</ol>
+</ol>
+
+<a name="displacement"><h3 style="color:Blue;">照射損傷MDのためのポテンシャル</h3></a>
+このMDには通常Ziegler-Biersack-Littmark (ZBL)モデルが使用される。<a href="cascade.html">照射損傷をモデル化する</a>の講座でこのモデルが使われた。この時は、"eam/fs"ポテンシャルと繋ぐことによって作成したデータファイルを使用した。<br><br>
+
+<br>
+$\begin{split}E^{ZBL}_{ij} & = \frac{1}{4\pi\epsilon_0} \frac{Z_i Z_j \,e^2}{r_{ij}} \phi(r_{ij}/a)+ S(r_{ij})\\
+a & =  \frac{0.46850}{Z_{i}^{0.23} + Z_{j}^{0.23}}\\
+\phi(x) & =  0.18175e^{-3.19980x} + 0.50986e^{-0.94229x} + 0.28022e^{-0.40290x} + 0.02817e^{-0.20162x}\\\end{split}$
+<br>
+<br>
+通常は、短距離相互作用をzbl、長距離相互作用をeam/fsで計算する方法が取られる。これを実現するには間の中距離部分を2つのポテンシャルがなめらかにつながるようにしておけば良い。具体的には、pair_style eam/fsの枠組みを使い、2体ポテンシャルの短距離部分をZBLから計算したもの、中距離部分を以下の適切な接続ポテンシャルから計算された値で上書きする。
+<br>
+<br>
+$\phi_{join}(r) = exp(B_{0}+B_{1}r+B_{2}r^{2}+B_{3}r^{3})$
+<br>
+<br>
+ただし、$B_{i}$(i=0...3)はzbl部分とeam/fs部分がなめらかに接続するように決定する。
+
+より簡単な方法は、LAMMPSの中で<a href="https://docs.lammps.org/pair_zbl.html">pair_style zbl</a>としてすでに定義されているpair_styleを使うことである。LAMMPSのマニュアルによれば、GPUでの加速計算も可能なバージョンもある。<br>
+<pre>
+----------------------------------------------------
+</pre>
+<a href="index.html">目次へ</a>    前は<a href="gpu.html">GPUを利用する</a>
+<br><br>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UFT-8">
+
+<head>
+<title>インストール</title>
+</head>
+
+<body bgcolor="ffffcc">
+<center><h2 style="color:Blue;">インストール</h2></center><br>
+
+    <a href="introduction.html">「ようこそ分子動力学入門コースへ」</a>で書いたように、このコースの目的はMDが使えるようになることで、具体的にはLAMMPSの使用法を学ぶことである。LAMMPSは様々なOS環境で使用可能であるし、インストール時に決定すべき様々なオプションもある。よってインストール法を紹介しただけで膨大な情報になってしまう。また常にアップデートが行われているので、ここの記述を最新のものしていく努力はするが、将来ここに書かれた方法でうまくいかなくなることもあるかもしれない。よって受講者にはスキルアップした時点で本家の<a href="https://docs.lammps.org/Install.html">インストールサイト</a>を読んでもらいたい。<br><br>
+    さて以下では、このコースを始めるために最低限必要なインストール情報を紹介する。LAMMPSには実行時に1CPUのみを使うシリアル版と複数のCPUを使うパラレル版がある。当面このコースを進めるにはシリアル版で十分であるので、パラレル版についてはコースが進んだ段階で取り扱うことにする。受講者はWindowsPCかMacintoshのどちらかは持っていると思うので、まだLAMMPSが使える状態になっていないならすぐにインストールしよう。
+    <br><br><br>
+<h3 style="color:Blue;">Windows PCにインストール</h3>
+Windows用のLAMMPSについての情報は<a href="http://packages.lammps.org/windows.html">LAMMPS Windows Installer Repository</a>にある。このホームページを読み進めていくとInstalling LAMMPS on Windowsというヘッダーがあり、その下にダウンロードサイトへのリンクがある。32bitまたは64bitで自分のPCに適切な方を選び（通常64bit版を選ぶ）、exeファイルをインストールする。インストールが完了したら、スタートメニューのWindowsシステムツールの中の"コマンドプロンプト"を起動して、その中でLAMMPSのシリアル版を以下の実行させてプログラムが開始されればインストール成功である。
+<pre>
+<font color="green"; size="+1">
+C:\Users\????>lmp_serial
+</font>
+</pre>
+ちなみにパラレル版のインストールは<a href="http://packages.lammps.org/windows.html">LAMMPS Windows Installer Repository</a>のページの下のほうにMPI Support for LAMMPS on Windowsという部分があるのでそこを参考にするとよい。
+
+<br><br><br>
+<h3 style="color:Blue;">Macintoshにインストール</h3>
+    Macintoshでは<a href="https://brew.sh/">Homebrew</a>と呼ばれるパッケージマネージャーを予めインストールして、それを使ってLAMMPSをインターネット経由でインストールする。（注意：HomebrewはmacOS 10.13以降でないと使えない。もし、それ以前のOSを使っている場合はアップデートする必要がある。）Homebrewのインストールは簡単で、Homebrewのサイトに書いてあるメッセージに従って、GithubにあるHomebrew-?.?.?.pkgというファイルをダウンロードする。そのファイルをダブルクリックすればインストールが開始され、あとはメッセージに従っていくだけだ。<br><br>
+    
+        これでLAMMPSをインストール準備ができた。あとの手順は<a href="https://docs.lammps.org/Install_mac.html">Download an executable for Mac</a>に書かれれいる。まずMacのTerminalアプリを起動する。そして
+<pre>
+<font color="green"; size="+1">
+> brew install lammps
+</font>
+</pre>
+とタイプすればインストールが開始される。インストール後、Terminalアプリで
+<pre>
+<font color="green"; size="+1">
+user@computer directory$ lmp_serial
+</font>
+</pre>
+
+を実行してLAMMPSが起動されればインストール成功である。起動されないときはパスが通っていない状態なのでどこにLAMMPSの実行モジュールがインストールされたのか探す必要がある。<pre><font color="green"; size="+1">/usr/local/bin</font></pre>や<pre><font color="green"; size="+1">/opt/homebrew/bin</font></pre>などを探してみよう。ちなみに、Macの場合、シリアル版と同時にパラレル版もインストールされるようだ。
+
+<br><br><br>
+<h3 style="color:Blue;">可視化ツールOVITOをインストール</h3>
+MDの結果を解析するには原子イメージの可視化は不可欠だ。いくつかフリーのツールがあるが、今はこのOVITOが最もよくできているフリーツールである。もちろん気に入ったら有料版を購入しても良い。このあとのコースに必要なので、<a href="http://www.ovito.org">OVITOのサイト</a>から自分が使うWindowsPCまたはMacintoshにインストールしよう。作業は簡単なので、説明は割愛する。（Macにインストールする場合、Apple M1以降の機種である必要があるがあるので注意。）
+<br><br><br>
+<h3 style="color:Blue;">サンプル実行に必要なファイルをインストール</h3>
+    このコースでは実際にLAMMPSを動かしてみる。そのため、作業ディレクトリworkを作っておこう。その中に<a href="script.zip">script.zip</a>と<a href="potentials.zip">potentials.zip</a>をダウンロードしてそれぞれを展開して、ディレクトリごとworkディレクトリに入れておこう。すなわち、workディレクトリにはscriptとpotentialsの2つのサブディレクトリが存在することになる。<br><br>
+これでコースを始める準備が整ったので次に行こう。
+
+<pre>
+-----------------------------------------------------------
+</pre>
+<a href="index.html">目次へ</a>&nbsp&nbsp&nbsp前は<a href="introduction.html">ようこそ分子動力学入門コースへ</a>&nbsp&nbsp&nbsp次は<a href="relax.html">構造緩和を行う</a>
+    <br><br><br>
+</body>
+</html>

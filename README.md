@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/22375485/README.md)
 これはLAMMPSを用いた分子動力学の入門コースです。文書はHTML形式で以下の内容になっています。
 
 1. ようこそ分子動力学入門コースへ
