@@ -5,12 +5,13 @@
 
 <head>
 <title>GPUを利用する</title>
+<link rel="stylesheet" href="style_ja.css">
 </head>
 
-<body bgcolor="ffffcc">
-<center><h2 style="color:Blue;">GPUを利用する</h2></center><br>
+<body>
+<center><img src="logo_new.png" alt="Logo" width="600"><br><br><br><h2>GPUを利用する</h2></center><br>
 
-<a name="install"><h3 style="color:Blue;">GPUとは？</h3></a>
+<a name="about"><h3>GPUとは？</h3></a>
 
 Graphics Processing Unit(GPU)は元々はディスプレイの描画を高速化するためのオプションとしてCPUとは別に設置されるプロセッサであったが、計算科学分野の中で処理を高速化するために使われるようになった。机の下のワークステーションだけでなくスーパーコンピューターにも、CPUにGPUを付加することにより高速化がはかられるようになってきている。今後はGPUのようなCo-processorによる計算高速化が今後の計算科学のハードウェアの標準になっていくだろう。<br><br>
 
@@ -19,24 +20,24 @@ Graphics Processing Unit(GPU)は元々はディスプレイの描画を高速化
 <br>
 <br>
 
-<a name="exec"><h3 style="color:Blue;">GPU版LAMMPSのコンパイル・実行</h3></a>
+<a name="exec"><h3>GPU版LAMMPSのコンパイル・実行</h3></a>
 
 現在著者は様々なハードウェアをテストできるような環境にいないので、この講座の情報は古いものになっている可能性があることをあらかじめ述べておく。
 
-LAMMPSでGPUを利用するには並列版のインストール時、GPUパッケージを同時にコンパイルする必要がある。詳しくは<a href="https://docs.lammps.org/Speed_gpu.html">GPU package</a>を参照すること。<br><br>
+LAMMPSでGPUを利用するには並列版のインストール時、GPUパッケージを同時にコンパイルする必要がある。詳しくはLAMMPSサイトの中の<a href="https://docs.lammps.org/Speed_gpu.html">GPU package</a>を参照すること。<br><br>
 次は実行であるが、
 
 <pre>
-mpiexec -np 8 lmp_gpu -sf gpu -pk gpu 1 -in bccFe_anneal.lcm 
+$ mpiexec -np 8 lmp_gpu -sf gpu -pk gpu 1 -in bccFe_anneal.lcm 
 </pre>
 
-のように実行する。上の例はCPUを8コアで、gpuを1ユニット使用する場合のLAMMPS実行コマンドである。"-sf gpu"はGPUを使うことを指定するスイッチで、"-pk gpu 1"はGPUを1セット使うことを指定している。後者のスイッチのdefault値は1なので、このスイッチを省略しても良い。上の例ではCPU部分はMPIで8並列化され、CPUの各コアは共有するGPUに適切な処理を割り当てることになる。<br><br>
+のように実行する。上の例はCPUを8コアで、gpuを1ユニット使用する場合のLAMMPS実行コマンドである。<code>-sf gpu</code>はGPUを使うことを指定するスイッチで、<code>-pk gpu 1</code>はGPUを1セット使うことを指定している。後者のスイッチのdefault値は1なので、このスイッチを省略しても良い。上の例ではCPU部分はMPIで8並列化され、CPUの各コアは共有するGPUに適切な処理を割り当てることになる。<br><br>
 
-<pre>
-----------------------------------------------------
-</pre>
-<a href="index.html">目次へ</a>    前は<a href="parallel.html">並列計算を行う</a>  次は<a href="potential.html">原子間ポテンシャルについて</a>
-</pre>
+以上でこの講座は終了する。将来の加筆を考えて短いが独立した講座とした。
+<br><br><br><br>
+
+<center>
+<a href="index.html">目次へ</a>    前は<a href="parallel.html">並列計算を行う</a>  次は<a href="potential.html">原子間ポテンシャルについて</a></center>
 <br><br>
 </body>
 </html>
