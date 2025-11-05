@@ -1,0 +1,38 @@
+body {
+  padding: 100px;
+  line-height: 23px;
+  font-size: 19px; /* Base font size */
+  font-family: times;
+/*  font-family: arial, serif;*/
+}
+pre {
+	padding: 10px;
+	background-color: #000000;
+  color: white; 
+}
+h2 {
+  color: red; 
+  font-family: "ヒラギノ角ゴ Pro W3", serif;
+}
+h3 {
+  color: red; 
+  font-family: "ヒラギノ角ゴ Pro W3", serif;
+}
+h4 {
+  color: red; 
+  font-family: times;
+}
+code {
+  font-weight: bold;
+	background-color: #E6E6E6;
+	color: green;
+}
+em {
+  font-weight: bold;
+  font-family: courier;
+font-style: normal;
+}
+figcaption {
+  font-weight: bold;
+	color: blue;
+}
